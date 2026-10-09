@@ -4,7 +4,10 @@
 
 ## 在线使用
 
-打开 `index.html` 即可（双击本地文件，或起个静态服务：`python -m http.server`）。无需构建、无需依赖安装。
+- **GitHub Pages（直接打开就能用）**：https://swqsx3.github.io/image-merger/
+- **本地**：双击 `index.html` 即可，或起个静态服务 `python -m http.server`
+
+无需构建、无需安装依赖。
 
 ## 功能
 
