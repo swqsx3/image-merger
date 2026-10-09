@@ -1,0 +1,4 @@
+# 工作区本地数据（记忆、缓存等），不纳入版本控制
+.workbuddy/
+.DS_Store
+Thumbs.db

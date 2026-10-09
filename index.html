@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>图片合成工作台 · 主图居中叠加</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="logo">合</div>
+    <div>
+      <h1>图片合成工作台</h1>
+      <p>批量把主图居中叠加到背景图上</p>
+    </div>
+  </div>
+  <div class="topbar-actions">
+    <span class="stat" id="statBg">背景 0</span>
+    <span class="stat" id="statMain">主图 0</span>
+    <span class="stat accent" id="statOut">已生成 0</span>
+    <button class="btn primary sm" id="btnGenerateTop">批量合成</button>
+  </div>
+</header>
+
+<main class="layout">
+
+  <!-- ============ 第 1 栏：素材 ============ -->
+  <aside class="panel col-upload">
+
+    <section class="card">
+      <h2><span class="idx">1</span>背景图</h2>
+      <div class="drop" id="dropBg">
+        <input type="file" id="fileBg" accept="image/*" multiple hidden>
+        <div class="drop-inner">
+          <svg viewBox="0 0 24 24" class="ico"><path d="M12 16V4m0 0L8 8m4-4 4 4M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+          <strong>点击或拖入背景图</strong>
+        </div>
+      </div>
+      <ul class="thumbs" id="listBg"></ul>
+    </section>
+
+    <section class="card">
+      <h2><span class="idx">2</span>主图（批量）</h2>
+      <div class="drop" id="dropMain">
+        <input type="file" id="fileMain" accept="image/*" multiple hidden>
+        <div class="drop-inner">
+          <svg viewBox="0 0 24 24" class="ico"><path d="M12 16V4m0 0L8 8m4-4 4 4M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+          <strong>点击或拖入主图（可多选）</strong>
+        </div>
+      </div>
+      <ul class="thumbs" id="listMain"></ul>
+    </section>
+
+    <section class="card">
+      <h2><span class="idx">3</span>配对方式</h2>
+      <div class="seg" id="pairMode">
+        <button class="on" data-mode="single">单背景×全部</button>
+        <button data-mode="pair">一一对应</button>
+        <button data-mode="cross">交叉组合</button>
+      </div>
+      <p class="hint tight" id="pairHint">所有主图都合成到第 1 张背景图上。</p>
+    </section>
+
+  </aside>
+
+  <!-- ============ 第 2 栏：参数 ============ -->
+  <aside class="panel col-settings">
+
+    <section class="card">
+      <h2><span class="idx">4</span>背景铺放</h2>
+      <div class="grid2">
+        <label class="field">
+          <span>适配方式</span>
+          <select id="bgFit">
+            <option value="cover">填满裁切</option>
+            <option value="contain">完整留边</option>
+            <option value="stretch">拉伸铺满</option>
+            <option value="original">原始居中</option>
+          </select>
+        </label>
+        <label class="field" id="bgColorField" hidden>
+          <span>留边颜色</span>
+          <input type="color" id="bgColor" value="#ffffff">
+        </label>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2><span class="idx">5</span>主图摆放</h2>
+      <label class="field">
+        <span>尺寸方式</span>
+        <select id="fgMode">
+          <option value="percent">按画布比例（推荐）</option>
+          <option value="size">自定义宽高 px</option>
+          <option value="pixel">固定宽度 px</option>
+          <option value="original">原始尺寸</option>
+          <option value="cover">铺满画布</option>
+        </select>
+      </label>
+
+      <div class="grid2" id="fgPercentBox">
+        <label class="field range">
+          <span>宽占比 <b id="vWidth">60%</b></span>
+          <input type="range" id="fgWidthPct" min="5" max="100" value="60">
+        </label>
+        <label class="field range">
+          <span>高上限 <b id="vHeight">80%</b></span>
+          <input type="range" id="fgMaxHeightPct" min="5" max="100" value="80">
+        </label>
+      </div>
+
+      <label class="field" id="fgPixelBox" hidden>
+        <span>主图宽度（px）</span>
+        <input type="number" id="fgWidthPx" value="800" min="10" step="10">
+      </label>
+
+      <div id="fgSizeBox" hidden>
+        <div class="size-row">
+          <input type="number" id="fgW" value="800" min="1" step="10" aria-label="主图宽">
+          <span class="x">×</span>
+          <input type="number" id="fgH" value="600" min="1" step="10" aria-label="主图高">
+          <button class="mini" id="btnFgSwap" title="交换宽高">⇄</button>
+        </div>
+        <label class="check sm" style="margin-top:6px">
+          <input type="checkbox" id="fgLockAR" checked><span>锁定原图比例（只填宽即可）</span>
+        </label>
+      </div>
+
+      <div class="grid2">
+        <label class="field"><span>水平偏移</span><input type="number" id="offX" value="0" step="1"></label>
+        <label class="field"><span>垂直偏移</span><input type="number" id="offY" value="0" step="1"></label>
+      </div>
+
+      <div class="grid2">
+        <label class="field range">
+          <span>不透明 <b id="vOpacity">100%</b></span>
+          <input type="range" id="fgOpacity" min="10" max="100" value="100">
+        </label>
+        <label class="field range">
+          <span>圆角 <b id="vRadius">0</b></span>
+          <input type="range" id="fgRadius" min="0" max="400" value="0">
+        </label>
+      </div>
+      <label class="check"><input type="checkbox" id="fgShadow"><span>加投影</span></label>
+    </section>
+
+    <section class="card">
+      <h2><span class="idx">6</span>输出</h2>
+      <label class="field">
+        <span>画布尺寸</span>
+        <select id="outSizeMode">
+          <option value="bg">跟随背景原尺寸</option>
+          <option value="main">跟随主图原尺寸</option>
+          <option value="custom">自定义</option>
+        </select>
+      </label>
+      <div id="outCustom" hidden>
+        <div class="size-row">
+          <input type="number" id="outW" value="1080" min="1" step="10" aria-label="画布宽">
+          <span class="x">×</span>
+          <input type="number" id="outH" value="1080" min="1" step="10" aria-label="画布高">
+          <button class="mini" id="btnOutSwap" title="交换宽高">⇄</button>
+        </div>
+        <div class="chips" id="sizePresets">
+          <button data-w="1080" data-h="1080" class="on">1080²</button>
+          <button data-w="1080" data-h="1440">3:4</button>
+          <button data-w="1080" data-h="1920">9:16</button>
+          <button data-w="1920" data-h="1080">16:9</button>
+          <button data-w="800" data-h="800">800²</button>
+          <button id="btnUseBg">用背景尺寸</button>
+        </div>
+        <div class="row-between">
+          <label class="check sm"><input type="checkbox" id="outLockAR"><span>锁定宽高比</span></label>
+          <span class="tip" id="outRatioTip">1 : 1</span>
+        </div>
+      </div>
+      <div class="grid2">
+        <label class="field">
+          <span>格式</span>
+          <select id="outFormat">
+            <option value="image/png">PNG</option>
+            <option value="image/jpeg">JPG</option>
+            <option value="image/webp">WebP</option>
+          </select>
+        </label>
+        <label class="field range">
+          <span>质量 <b id="vQuality">92</b></span>
+          <input type="range" id="outQuality" min="50" max="100" value="92">
+        </label>
+      </div>
+      <label class="field">
+        <span>命名</span>
+        <select id="nameMode">
+          <option value="keep">保留主图原名</option>
+          <option value="prefix">前缀 + 序号</option>
+        </select>
+      </label>
+      <label class="field" id="prefixBox" hidden>
+        <span>前缀</span>
+        <input type="text" id="prefix" value="合成_" placeholder="合成_">
+      </label>
+      <label class="check"><input type="checkbox" id="jpegBg"><span>JPG 透明处填白</span></label>
+    </section>
+
+  </aside>
+
+  <!-- ============ 第 3 栏：预览 + 结果 ============ -->
+  <section class="stage">
+
+    <div class="card preview-card">
+      <div class="preview-head">
+        <h2>实时预览<span class="pin" title="滚动页面时预览区始终固定在顶部可见">常驻</span></h2>
+        <div class="preview-meta" id="previewMeta">请先上传背景图和主图</div>
+      </div>
+      <div class="canvas-wrap">
+        <canvas id="preview"></canvas>
+        <div class="empty-holder" id="previewEmpty">
+          <div class="ph">
+            <div class="ph-box">背景图</div>
+            <span>+</span>
+            <div class="ph-box sm">主图</div>
+          </div>
+          <p>上传后这里实时显示合成效果</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="result-head">
+        <h2>合成结果 <span class="badge" id="resultCount">0</span></h2>
+        <div class="btn-row">
+          <button class="btn primary sm" id="btnGenerate">开始批量合成</button>
+          <button class="btn sm" id="btnZip" disabled>打包 ZIP</button>
+          <button class="btn ghost sm" id="btnClearResult" disabled>清空</button>
+        </div>
+      </div>
+      <div class="progress" id="progressWrap" hidden>
+        <div class="bar"><i id="progressBar"></i></div>
+        <span id="progressText">0 / 0</span>
+      </div>
+      <div class="grid" id="results"></div>
+      <div class="empty" id="resultEmpty">合成后的图片会显示在这里，可单张下载或打包导出。</div>
+    </div>
+
+  </section>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
